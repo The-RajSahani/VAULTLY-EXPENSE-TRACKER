@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>Vaultly — Premium Expense Tracker</title>
+<meta name="description" content="Vaultly: track income, expenses, and budgets with clarity." />
+
+<!-- Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<!-- Font Awesome -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+<!-- Styles -->
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- ===================== AURORA BACKDROP ===================== -->
+<div class="aurora-backdrop" aria-hidden="true">
+  <span class="aurora-blob b1"></span>
+  <span class="aurora-blob b2"></span>
+  <span class="aurora-blob b3"></span>
+  <div class="grain"></div>
+</div>
+
+<!-- ===================== TOASTS ===================== -->
+<div id="toast-stack" class="toast-stack" aria-live="polite"></div>
+
+<!-- ===================== LOADING OVERLAY ===================== -->
+<div id="global-loader" class="global-loader">
+  <div class="orbit-spinner"><span></span><span></span><span></span></div>
+  <p>Loading Vaultly…</p>
+</div>
+
+<!-- ===================== AUTH SCREEN ===================== -->
+<main id="auth-screen" class="auth-screen hidden">
+  <div class="auth-side">
+    <div class="brand">
+      <span class="brand-mark"><i class="fa-solid fa-vault"></i></span>
+      <span class="brand-name">Vaultly</span>
+    </div>
+    <h1>Your money,<br><span class="text-gradient">held with clarity.</span></h1>
+    <p class="auth-side-copy">Track every rupee, dollar, or euro that moves through your life — income, spending, and savings, in one calm view.</p>
+    <div class="auth-side-stats">
+      <div><strong>01</strong><span>Add income &amp; expenses in seconds</span></div>
+      <div><strong>02</strong><span>Watch budgets before they break</span></div>
+      <div><strong>03</strong><span>See patterns, not just numbers</span></div>
+    </div>
+  </div>
+
+  <div class="auth-card-wrap">
+    <div class="glass-card auth-card">
+
+      <!-- Login -->
+      <form id="login-form" class="auth-form" novalidate>
+        <h2>Welcome back</h2>
+        <p class="auth-sub">Sign in to open your vault.</p>
+        <label class="field">
+          <span>Email</span>
+          <input type="email" id="login-email" placeholder="you@example.com" required autocomplete="email">
+        </label>
+        <label class="field">
+          <span>Password</span>
+          <div class="pw-wrap">
+            <input type="password" id="login-password" placeholder="••••••••" required autocomplete="current-password">
+            <button type="button" class="pw-toggle" data-target="login-password" aria-label="Show password"><i class="fa-regular fa-eye"></i></button>
+          </div>
+        </label>
+        <div class="field-row">
+          <label class="checkbox"><input type="checkbox" id="login-remember"><span>Remember me</span></label>
+          <a href="#" id="go-forgot" class="link-muted">Forgot password?</a>
+        </div>
+        <button type="submit" class="btn btn-primary btn-block">
+          <span class="btn-label">Sign in</span>
+          <span class="btn-spinner"></span>
+        </button>
+        <p class="auth-switch">New to Vaultly? <a href="#" id="go-register">Create an account</a></p>
+      </form>
+
+      <!-- Register -->
+      <form id="register-form" class="auth-form hidden" novalidate>
+        <h2>Create your vault</h2>
+        <p class="auth-sub">Free, private, and yours alone.</p>
+        <label class="field">
+          <span>Full name</span>
+          <input type="text" id="register-name" placeholder="Ada Lovelace" required autocomplete="name">
+        </label>
+        <label class="field">
+          <span>Email</span>
+          <input type="email" id="register-email" placeholder="you@example.com" required autocomplete="email">
+        </label>
+        <label class="field">
+          <span>Password</span>
+          <div class="pw-wrap">
+            <input type="password" id="register-password" placeholder="Min. 8 characters" required autocomplete="new-password" minlength="8">
+            <button type="button" class="pw-toggle" data-target="register-password" aria-label="Show password"><i class="fa-regular fa-eye"></i></button>
+          </div>
+          <div class="pw-strength" id="pw-strength"><span></span></div>
+        </label>
+        <label class="checkbox terms">
+          <input type="checkbox" id="register-terms" required>
+          <span>I agree to keep my own data honest &amp; private.</span>
+        </label>
+        <button type="submit" class="btn btn-primary btn-block">
+          <span class="btn-label">Create account</span>
+          <span class="btn-spinner"></span>
+        </button>
+        <p class="auth-switch">Already have an account? <a href="#" id="go-login">Sign in</a></p>
+      </form>
+
+      <!-- Forgot password -->
+      <form id="forgot-form" class="auth-form hidden" novalidate>
+        <h2>Reset password</h2>
+        <p class="auth-sub">We'll email you a secure reset link.</p>
+        <label class="field">
+          <span>Email</span>
+          <input type="email" id="forgot-email" placeholder="you@example.com" required autocomplete="email">
+        </label>
+        <button type="submit" class="btn btn-primary btn-block">
+          <span class="btn-label">Send reset link</span>
+          <span class="btn-spinner"></span>
+        </button>
+        <p class="auth-switch"><a href="#" id="back-to-login-from-forgot"><i class="fa-solid fa-arrow-left"></i> Back to sign in</a></p>
+      </form>
+
+      <!-- Verify email notice -->
+      <div id="verify-notice" class="auth-form hidden">
+        <div class="verify-icon"><i class="fa-regular fa-envelope-circle-check"></i></div>
+        <h2>Verify your email</h2>
+        <p class="auth-sub">We've sent a verification link to <strong id="verify-email-addr">your email</strong>. Please confirm before continuing.</p>
+        <button id="resend-verify" class="btn btn-secondary btn-block">Resend email</button>
+        <button id="verify-check" class="btn btn-primary btn-block">I've verified — continue</button>
+        <p class="auth-switch"><a href="#" id="verify-logout">Use a different account</a></p>
+      </div>
+
+    </div>
+  </div>
+</main>
+
+<!-- ===================== APP SHELL ===================== -->
+<div id="app-shell" class="app-shell hidden">
+
+  <!-- Sidebar -->
+  <aside class="sidebar glass-card">
+    <div class="brand sidebar-brand">
+      <span class="brand-mark"><i class="fa-solid fa-vault"></i></span>
+      <span class="brand-name">Vaultly</span>
+    </div>
+    <nav class="side-nav">
+      <button class="nav-item active" data-view="dashboard"><i class="fa-solid fa-grid-2"></i><span>Dashboard</span></button>
+      <button class="nav-item" data-view="transactions"><i class="fa-solid fa-arrow-right-arrow-left"></i><span>Transactions</span></button>
+      <button class="nav-item" data-view="analytics"><i class="fa-solid fa-chart-pie"></i><span>Analytics</span></button>
+      <button class="nav-item" data-view="budget"><i class="fa-solid fa-bullseye"></i><span>Budget</span></button>
+      <button class="nav-item" data-view="calendar"><i class="fa-solid fa-calendar-days"></i><span>Calendar</span></button>
+      <button class="nav-item" data-view="settings"><i class="fa-solid fa-sliders"></i><span>Settings</span></button>
+      <button class="nav-item" data-view="profile"><i class="fa-solid fa-user"></i><span>Profile</span></button>
+    </nav>
+    <button id="logout-btn" class="nav-item logout"><i class="fa-solid fa-right-from-bracket"></i><span>Log out</span></button>
+  </aside>
+
+  <!-- Main -->
+  <div class="main-col">
+    <!-- Topbar -->
+    <header class="topbar glass-card">
+      <button id="mobile-menu-btn" class="icon-btn mobile-only" aria-label="Menu"><i class="fa-solid fa-bars"></i></button>
+      <div class="global-search">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <input type="text" id="global-search-input" placeholder="Search any transaction…">
+        <div id="global-search-results" class="search-results hidden"></div>
+      </div>
+      <div class="topbar-right">
+        <button id="theme-toggle" class="icon-btn" aria-label="Toggle theme"><i class="fa-solid fa-moon"></i></button>
+        <button id="notif-btn" class="icon-btn" aria-label="Notifications">
+          <i class="fa-solid fa-bell"></i>
+          <span id="notif-dot" class="notif-dot hidden"></span>
+        </button>
+        <div id="notif-panel" class="notif-panel hidden"></div>
+        <button id="topbar-profile" class="avatar-btn">
+          <img id="topbar-avatar" src="" alt="" class="hidden">
+          <span id="topbar-avatar-fallback"><i class="fa-solid fa-user"></i></span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Views -->
+    <main class="view-area" id="view-area">
+
+      <!-- DASHBOARD -->
+      <section class="view active" id="view-dashboard">
+        <div class="view-head">
+          <div>
+            <h1 id="dash-greeting">Welcome back</h1>
+            <p class="muted" id="dash-date"></p>
+          </div>
+          <button class="btn btn-primary" id="quick-add-btn"><i class="fa-solid fa-plus"></i> Quick Add</button>
+        </div>
+
+        <div class="dash-grid">
+          <!-- Balance orb -->
+          <div class="glass-card balance-orb-card">
+            <div class="balance-orb-wrap">
+              <svg viewBox="0 0 200 200" class="balance-orb">
+                <defs>
+                  <linearGradient id="orbGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#2DD4BF"/>
+                    <stop offset="100%" stop-color="#7C5CFF"/>
+                  </linearGradient>
+                </defs>
+                <circle cx="100" cy="100" r="86" class="orb-track"/>
+                <circle cx="100" cy="100" r="86" class="orb-progress" id="orb-progress"/>
+              </svg>
+              <div class="balance-orb-center">
+                <span class="muted small">Total Balance</span>
+                <strong id="stat-balance">₹0</strong>
+                <span class="orb-sub" id="orb-sub">savings rate 0%</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="stat-cards">
+            <div class="glass-card stat-card income">
+              <div class="stat-icon"><i class="fa-solid fa-arrow-trend-up"></i></div>
+              <div><span class="muted small">Total Income</span><strong id="stat-income">₹0</strong></div>
+            </div>
+            <div class="glass-card stat-card expense">
+              <div class="stat-icon"><i class="fa-solid fa-arrow-trend-down"></i></div>
+              <div><span class="muted small">Total Expenses</span><strong id="stat-expense">₹0</strong></div>
+            </div>
+            <div class="glass-card stat-card savings">
+              <div class="stat-icon"><i class="fa-solid fa-piggy-bank"></i></div>
+              <div><span class="muted small">Savings</span><strong id="stat-savings">₹0</strong></div>
+            </div>
+            <div class="glass-card stat-card budget">
+              <div class="stat-icon"><i class="fa-solid fa-bullseye"></i></div>
+              <div class="budget-mini">
+                <span class="muted small">Monthly Budget</span>
+                <div class="progress-track"><div class="progress-fill" id="dash-budget-fill"></div></div>
+                <span class="muted tiny" id="dash-budget-text">No budget set</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="dash-lower">
+          <div class="glass-card recent-panel">
+            <div class="panel-head">
+              <h3>Recent Transactions</h3>
+              <button class="link-btn" data-view-link="transactions">View all</button>
+            </div>
+            <div id="recent-list" class="tx-list"></div>
+          </div>
+          <div class="glass-card mini-chart-panel">
+            <div class="panel-head"><h3>This Month</h3></div>
+            <canvas id="mini-chart" height="220"></canvas>
+          </div>
+        </div>
+      </section>
+
+      <!-- TRANSACTIONS -->
+      <section class="view" id="view-transactions">
+        <div class="view-head">
+          <div><h1>Transactions</h1><p class="muted">All your income &amp; expenses in one place.</p></div>
+          <div class="head-actions">
+            <button class="btn btn-secondary" id="export-btn"><i class="fa-solid fa-file-export"></i> Export</button>
+            <button class="btn btn-primary" id="add-tx-btn"><i class="fa-solid fa-plus"></i> Add Transaction</button>
+          </div>
+        </div>
+
+        <div class="glass-card filter-bar">
+          <div class="filter-tabs">
+            <button class="chip active" data-type-filter="all">All</button>
+            <button class="chip" data-type-filter="income">Income</button>
+            <button class="chip" data-type-filter="expense">Expense</button>
+          </div>
+          <select id="filter-category" class="select-input"><option value="all">All Categories</option></select>
+          <select id="filter-scope" class="select-input">
+            <option value="all">Personal + Business</option>
+            <option value="personal">Personal only</option>
+            <option value="business">Business only</option>
+          </select>
+          <input type="date" id="filter-date-from" class="select-input" title="From date">
+          <input type="date" id="filter-date-to" class="select-input" title="To date">
+          <input type="number" id="filter-amount-min" class="select-input amount-input" placeholder="Min ₹">
+          <input type="number" id="filter-amount-max" class="select-input amount-input" placeholder="Max ₹">
+          <button class="btn btn-ghost" id="clear-filters-btn">Clear</button>
+        </div>
+
+        <div class="glass-card">
+          <div id="tx-full-list" class="tx-list full"></div>
+          <div id="tx-empty" class="empty-state hidden">
+            <i class="fa-solid fa-inbox"></i>
+            <p>No transactions match your filters.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ANALYTICS -->
+      <section class="view" id="view-analytics">
+        <div class="view-head">
+          <div><h1>Analytics</h1><p class="muted">Understand where your money goes.</p></div>
+          <select id="analytics-range" class="select-input">
+            <option value="week">This Week</option>
+            <option value="month" selected>This Month</option>
+            <option value="year">This Year</option>
+          </select>
+        </div>
+
+        <div class="analytics-summary">
+          <div class="glass-card mini-stat"><span class="muted small">Highest Category</span><strong id="an-top-cat">—</strong></div>
+          <div class="glass-card mini-stat"><span class="muted small">Avg. Daily Spend</span><strong id="an-avg-daily">₹0</strong></div>
+          <div class="glass-card mini-stat"><span class="muted small">Total Transactions</span><strong id="an-tx-count">0</strong></div>
+        </div>
+
+        <div class="chart-grid">
+          <div class="glass-card chart-card">
+            <h3>Expenses by Category</h3>
+            <canvas id="chart-pie"></canvas>
+          </div>
+          <div class="glass-card chart-card">
+            <h3>Monthly Overview</h3>
+            <canvas id="chart-bar"></canvas>
+          </div>
+          <div class="glass-card chart-card wide">
+            <h3>Income vs Expense Trend</h3>
+            <canvas id="chart-line"></canvas>
+          </div>
+        </div>
+
+        <div class="glass-card">
+          <div class="panel-head"><h3>Category Breakdown</h3></div>
+          <div id="category-breakdown" class="cat-breakdown"></div>
+        </div>
+      </section>
+
+      <!-- BUDGET -->
+      <section class="view" id="view-budget">
+        <div class="view-head"><div><h1>Budget</h1><p class="muted">Set a monthly ceiling and watch it stay under control.</p></div></div>
+
+        <div class="glass-card budget-hero">
+          <div class="budget-hero-left">
+            <span class="muted small">Monthly Budget</span>
+            <strong id="budget-total-display">₹0</strong>
+            <div class="progress-track lg"><div class="progress-fill" id="budget-main-fill"></div></div>
+            <div class="budget-legend">
+              <span><i class="dot spent"></i> Spent: <strong id="budget-spent-text">₹0</strong></span>
+              <span><i class="dot remain"></i> Remaining: <strong id="budget-remain-text">₹0</strong></span>
+            </div>
+          </div>
+          <form id="budget-form" class="budget-form">
+            <label class="field">
+              <span>Set Monthly Budget</span>
+              <input type="number" id="budget-input" min="0" placeholder="e.g. 30000" required>
+            </label>
+            <button class="btn btn-primary" type="submit">Save Budget</button>
+          </form>
+        </div>
+
+        <div class="glass-card">
+          <div class="panel-head"><h3>Category Budgets</h3><button class="link-btn" id="add-cat-budget-btn">+ Add category limit</button></div>
+          <div id="cat-budget-list" class="cat-budget-list"></div>
+        </div>
+      </section>
+
+      <!-- CALENDAR -->
+      <section class="view" id="view-calendar">
+        <div class="view-head">
+          <div><h1>Calendar</h1><p class="muted">Click a date to see what happened that day.</p></div>
+          <div class="calendar-nav">
+            <button class="icon-btn" id="cal-prev"><i class="fa-solid fa-chevron-left"></i></button>
+            <strong id="cal-month-label">—</strong>
+            <button class="icon-btn" id="cal-next"><i class="fa-solid fa-chevron-right"></i></button>
+          </div>
+        </div>
+        <div class="glass-card">
+          <div class="calendar-grid" id="calendar-grid"></div>
+        </div>
+        <div class="glass-card" id="calendar-day-panel">
+          <div class="panel-head"><h3 id="cal-day-title">Select a date</h3></div>
+          <div id="cal-day-list" class="tx-list"></div>
+        </div>
+      </section>
+
+      <!-- SETTINGS -->
+      <section class="view" id="view-settings">
+        <div class="view-head"><div><h1>Settings</h1><p class="muted">Make Vaultly feel like yours.</p></div></div>
+
+        <div class="settings-grid">
+          <div class="glass-card settings-card">
+            <h3><i class="fa-solid fa-circle-half-stroke"></i> Appearance</h3>
+            <div class="settings-row">
+              <span>Theme</span>
+              <div class="segmented" id="theme-segmented">
+                <button data-theme="dark" class="active">Dark</button>
+                <button data-theme="light">Light</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="glass-card settings-card">
+            <h3><i class="fa-solid fa-coins"></i> Currency</h3>
+            <div class="settings-row">
+              <span>Display currency</span>
+              <select id="currency-select" class="select-input">
+                <option value="INR">₹ INR — Indian Rupee</option>
+                <option value="USD">$ USD — US Dollar</option>
+                <option value="EUR">€ EUR — Euro</option>
+                <option value="GBP">£ GBP — British Pound</option>
+                <option value="JPY">¥ JPY — Japanese Yen</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="glass-card settings-card">
+            <h3><i class="fa-solid fa-language"></i> Language</h3>
+            <div class="settings-row">
+              <span>App language</span>
+              <select id="language-select" class="select-input">
+                <option value="en">English</option>
+                <option value="hi">हिन्दी</option>
+                <option value="es">Español</option>
+                <option value="fr">Français</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="glass-card settings-card">
+            <h3><i class="fa-solid fa-bell"></i> Notifications</h3>
+            <div class="settings-row"><span>Budget limit warnings</span><label class="switch"><input type="checkbox" id="notif-budget" checked><span></span></label></div>
+            <div class="settings-row"><span>Daily expense reminder</span><label class="switch"><input type="checkbox" id="notif-daily"><span></span></label></div>
+            <div class="settings-row"><span>Monthly expense reminder</span><label class="switch"><input type="checkbox" id="notif-monthly" checked><span></span></label></div>
+            <div class="settings-row"><span>Transaction confirmations</span><label class="switch"><input type="checkbox" id="notif-success" checked></label></div>
+          </div>
+
+          <div class="glass-card settings-card">
+            <h3><i class="fa-solid fa-tags"></i> Categories</h3>
+            <div class="settings-row">
+              <span>Custom categories</span>
+              <button class="link-btn" id="manage-cats-btn">Manage</button>
+            </div>
+            <div id="custom-cat-list" class="custom-cat-list"></div>
+            <form id="add-category-form" class="inline-form">
+              <input type="text" id="new-category-name" placeholder="New category name" required>
+              <input type="color" id="new-category-color" value="#7C5CFF">
+              <button class="btn btn-secondary" type="submit">Add</button>
+            </form>
+          </div>
+        </div>
+      </section>
+
+      <!-- PROFILE -->
+      <section class="view" id="view-profile">
+        <div class="view-head"><div><h1>Profile</h1><p class="muted">Manage your account.</p></div></div>
+
+        <div class="glass-card profile-card">
+          <div class="profile-photo-wrap">
+            <img id="profile-avatar" src="" class="hidden" alt="">
+            <span id="profile-avatar-fallback"><i class="fa-solid fa-user"></i></span>
+            <label class="photo-upload-btn" for="profile-photo-input"><i class="fa-solid fa-camera"></i></label>
+            <input type="file" id="profile-photo-input" accept="image/*" class="hidden">
+          </div>
+          <div class="profile-meta">
+            <h2 id="profile-name-display">—</h2>
+            <p class="muted" id="profile-email-display">—</p>
+            <span class="badge" id="profile-verified-badge"><i class="fa-solid fa-circle-check"></i> Verified</span>
+          </div>
+        </div>
+
+        <div class="settings-grid">
+          <form class="glass-card settings-card" id="update-name-form">
+            <h3><i class="fa-solid fa-id-badge"></i> Name</h3>
+            <label class="field"><span>Full name</span><input type="text" id="update-name-input" required></label>
+            <button class="btn btn-primary" type="submit">Update name</button>
+          </form>
+
+          <form class="glass-card settings-card" id="update-email-form">
+            <h3><i class="fa-solid fa-envelope"></i> Email</h3>
+            <label class="field"><span>New email</span><input type="email" id="update-email-input" required></label>
+            <label class="field"><span>Current password</span><input type="password" id="update-email-password" required placeholder="Confirm with password"></label>
+            <button class="btn btn-primary" type="submit">Update email</button>
+          </form>
+
+          <form class="glass-card settings-card" id="update-password-form">
+            <h3><i class="fa-solid fa-lock"></i> Password</h3>
+            <label class="field"><span>Current password</span><input type="password" id="current-password-input" required></label>
+            <label class="field"><span>New password</span><input type="password" id="new-password-input" required minlength="8"></label>
+            <button class="btn btn-primary" type="submit">Change password</button>
+          </form>
+
+          <div class="glass-card settings-card danger-card">
+            <h3><i class="fa-solid fa-triangle-exclamation"></i> Danger zone</h3>
+            <p class="muted small">Deleting your account permanently removes all your transactions. This cannot be undone.</p>
+            <button class="btn btn-danger" id="delete-account-btn">Delete my account</button>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- Floating Action Button -->
+  <button id="fab-add" class="fab" aria-label="Add transaction"><i class="fa-solid fa-plus"></i></button>
+
+  <!-- Mobile bottom nav -->
+  <nav class="bottom-nav mobile-only">
+    <button class="nav-item active" data-view="dashboard"><i class="fa-solid fa-grid-2"></i></button>
+    <button class="nav-item" data-view="transactions"><i class="fa-solid fa-arrow-right-arrow-left"></i></button>
+    <button class="nav-item nav-fab-spacer"></button>
+    <button class="nav-item" data-view="analytics"><i class="fa-solid fa-chart-pie"></i></button>
+    <button class="nav-item" data-view="settings"><i class="fa-solid fa-sliders"></i></button>
+  </nav>
+</div>
+
+<!-- ===================== MODALS ===================== -->
+<div id="modal-overlay" class="modal-overlay hidden">
+
+  <!-- Add/Edit Transaction Modal -->
+  <div class="glass-card modal" id="tx-modal">
+    <div class="modal-head">
+      <h3 id="tx-modal-title">Add Transaction</h3>
+      <button class="icon-btn modal-close" data-close-modal><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <form id="tx-form" class="modal-body">
+      <input type="hidden" id="tx-id">
+      <div class="segmented full" id="tx-type-toggle">
+        <button type="button" data-tx-type="expense" class="active"><i class="fa-solid fa-arrow-trend-down"></i> Expense</button>
+        <button type="button" data-tx-type="income"><i class="fa-solid fa-arrow-trend-up"></i> Income</button>
+      </div>
+
+      <div class="field-grid">
+        <label class="field">
+          <span>Amount</span>
+          <input type="number" id="tx-amount" min="0" step="0.01" placeholder="0.00" required>
+        </label>
+        <label class="field">
+          <span>Date</span>
+          <input type="date" id="tx-date" required>
+        </label>
+      </div>
+
+      <label class="field">
+        <span>Category</span>
+        <select id="tx-category" required></select>
+      </label>
+
+      <label class="field">
+        <span>Title</span>
+        <input type="text" id="tx-title" placeholder="e.g. Grocery run" required>
+      </label>
+
+      <label class="field">
+        <span>Notes</span>
+        <textarea id="tx-notes" rows="2" placeholder="Optional notes…"></textarea>
+      </label>
+
+      <div class="field-row" id="scope-row">
+        <span>Type</span>
+        <div class="segmented" id="tx-scope-toggle">
+          <button type="button" data-scope="personal" class="active">Personal</button>
+          <button type="button" data-scope="business">Business</button>
+        </div>
+      </div>
+
+      <label class="field" id="receipt-field">
+        <span>Receipt (optional)</span>
+        <div class="receipt-upload">
+          <input type="file" id="tx-receipt" accept="image/*">
+          <img id="receipt-preview" class="hidden" alt="Receipt preview">
+        </div>
+      </label>
+
+      <div class="modal-actions">
+        <button type="button" class="btn btn-ghost" data-close-modal>Cancel</button>
+        <button type="submit" class="btn btn-primary">
+          <span class="btn-label">Save Transaction</span>
+          <span class="btn-spinner"></span>
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Confirm delete modal -->
+  <div class="glass-card modal small" id="confirm-modal">
+    <div class="modal-body confirm-body">
+      <div class="verify-icon danger"><i class="fa-solid fa-trash-can"></i></div>
+      <h3 id="confirm-title">Delete this?</h3>
+      <p class="muted" id="confirm-text">This action can't be undone.</p>
+      <div class="modal-actions">
+        <button class="btn btn-ghost" data-close-modal>Cancel</button>
+        <button class="btn btn-danger" id="confirm-yes-btn">Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Export modal -->
+  <div class="glass-card modal small" id="export-modal">
+    <div class="modal-head"><h3>Export Transactions</h3><button class="icon-btn modal-close" data-close-modal><i class="fa-solid fa-xmark"></i></button></div>
+    <div class="modal-body">
+      <p class="muted small">Exports respect your current filters.</p>
+      <div class="export-options">
+        <button class="export-opt" data-export="csv"><i class="fa-solid fa-file-csv"></i><span>CSV</span></button>
+        <button class="export-opt" data-export="excel"><i class="fa-solid fa-file-excel"></i><span>Excel</span></button>
+        <button class="export-opt" data-export="pdf"><i class="fa-solid fa-file-pdf"></i><span>PDF</span></button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ===================== FIREBASE (modular v10 via CDN) ===================== -->
+<script type="module" src="js/firebase-config.js"></script>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+
+<!-- Export libs -->
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+<!-- App modules -->
+<script type="module" src="js/main.js"></script>
+
+</body>
+</html>
